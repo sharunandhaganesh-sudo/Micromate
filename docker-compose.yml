@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with TimescaleDB for time-series persistence
+  database:
+    image: timescale/timescaledb:latest-pg16
+    container_name: aeropulse-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: microclimate
+      POSTGRES_USER: aeropulse
+      POSTGRES_PASSWORD: secure_db_password_change_me
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aeropulse -d microclimate"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Eclipse Mosquitto MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: aeropulse-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/aclfile:/mosquitto/config/aclfile:ro
+      - mosquittodata:/mosquitto/data
+
+  # FastAPI Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: aeropulse-backend
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://aeropulse:secure_db_password_change_me@database:5432/microclimate
+      MQTT_BROKER_HOST: mosquitto
+      MQTT_BROKER_PORT: 1883
+      MQTT_ENABLED: "true"
+      SECRET_KEY: ${SECRET_KEY:-aeropulse_production_secret_key_change_me}
+      ENABLE_DEMO_SIMULATOR_BY_DEFAULT: "true"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # React Frontend (Nginx static build)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aeropulse-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  pgdata:
+  mosquittodata:

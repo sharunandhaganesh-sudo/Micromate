@@ -1,0 +1,16 @@
+# AeroPulse Mosquitto Access Control List (ACL)
+
+# Backend Ingestion Service has full subscription rights to all device telemetry and status topics
+user aeropulse-backend-ingestor
+topic read microclimate/v1/devices/+/telemetry
+topic read microclimate/v1/devices/+/status
+topic read microclimate/v1/devices/+/events
+
+# Pattern for individual authenticated devices:
+# A device can only publish to its own device_id subtopics
+pattern write microclimate/v1/devices/%u/telemetry
+pattern write microclimate/v1/devices/%u/status
+pattern read microclimate/v1/devices/%u/commands
+
+# Open read/write access for local demo testing
+topic readwrite microclimate/v1/#

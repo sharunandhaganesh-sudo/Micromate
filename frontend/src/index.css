@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #F8FAFC;
+    color: #0F172A;
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+  }
+
+  /* Universal high-contrast readability overrides for light theme */
+  .text-white:not(button *):not(button):not(.badge-white):not([class*="bg-primary"]):not([class*="bg-navy"]):not([class*="bg-emerald"]):not([class*="bg-rose"]) {
+    color: #0F172A !important;
+  }
+  .text-slate-100 {
+    color: #0F172A !important;
+  }
+  .text-slate-200 {
+    color: #1E293B !important;
+  }
+  .text-slate-300 {
+    color: #334155 !important;
+  }
+  .text-slate-400 {
+    color: #475569 !important;
+  }
+  .text-slate-500 {
+    color: #64748B !important;
+  }
+
+  /* Universal white-surface card backgrounds */
+  .bg-surface {
+    background-color: #FFFFFF !important;
+    border-color: #E2E8F0 !important;
+  }
+  .bg-surface-elevated {
+    background-color: #FFFFFF !important;
+    border-color: #E2E8F0 !important;
+  }
+  .border-surface-border {
+    border-color: #E2E8F0 !important;
+  }
+}
+
+/* Custom modern light scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Sparkline subtle glow */
+.recharts-line-curve {
+  filter: drop-shadow(0 2px 4px rgba(14, 165, 233, 0.15));
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 3D Sensor Visual Keyframes */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-wind {
+  animation: spin-slow 3s linear infinite;
+}
+
+@keyframes droplet-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-3px) scale(1.02); }
+}
+
+.animate-float-droplet {
+  animation: droplet-float 3.5s ease-in-out infinite;
+}
+
+@keyframes rain-drizzle {
+  0% { transform: translateY(-4px); opacity: 0.2; }
+  50% { opacity: 0.9; }
+  100% { transform: translateY(8px); opacity: 0.2; }
+}
+
+.animate-rain-drop {
+  animation: rain-drizzle 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
