@@ -258,17 +258,13 @@ class EventDetectionEngine:
                 f"(change {change:+.2f} {unit}, threshold ±{threshold:.2f} {unit})"
             )
 
-            active = db.query(Incident).filter(
+            recent = db.query(Incident).filter(
                 Incident.device_id == device.id,
                 Incident.event_type == "SUDDEN_CHANGE",
-                Incident.status.in_(["ACTIVE", "ACKNOWLEDGED"]),
+                Incident.start_time >= measurement.timestamp - timedelta(seconds=30),
                 Incident.evidence_summary.like(f"%{label}%")
             ).first()
-            if active:
-                active.last_occurrence = measurement.timestamp
-                active.triggering_value = current
-                active.evidence_summary = evidence
-                incidents.append(active)
+            if recent:
                 continue
 
             incident = Incident(

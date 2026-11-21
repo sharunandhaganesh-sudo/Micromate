@@ -224,7 +224,8 @@ class IngestionService:
                 "wind_gust_mps": wind_gust,
                 "rainfall_interval_mm": rain_interval,
                 "rainfall_total_mm": rain_total,
-                "rain_rate_mmh": rain_rate
+                "rain_rate_mmh": rain_rate,
+                "rain_wetness_pct": rain_wetness
             },
             "quality_flags": quality_flags,
             "is_simulated": is_simulated,
