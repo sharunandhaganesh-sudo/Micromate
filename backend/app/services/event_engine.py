@@ -152,8 +152,8 @@ class EventDetectionEngine:
             except Exception as e:
                 logger.error(f"Error evaluating rule {rule.rule_code}: {e}")
 
-        # Check for sensor malfunction incidents
-        self._check_sensor_health(db, measurement, device, incidents_affected)
+        if not is_simulated:
+            self._check_sudden_changes(db, measurement, device, incidents_affected)
 
         db.commit()
         return incidents_affected
@@ -219,6 +219,84 @@ class EventDetectionEngine:
             return observed > threshold
         return False
 
+    def _check_sudden_changes(
+        self,
+        db: Session,
+        measurement: Measurement,
+        device: Device,
+        incidents: List[Incident]
+    ) -> None:
+        previous = db.query(Measurement).filter(
+            Measurement.station_id == measurement.station_id,
+            Measurement.id != measurement.id,
+            Measurement.timestamp < measurement.timestamp
+        ).order_by(Measurement.timestamp.desc()).first()
+        if not previous:
+            return
+
+        sudden_checks = [
+            ("temperature_c", "Temperature", 1.0, "°C"),
+            ("humidity_pct", "Humidity", 5.0, "%"),
+            ("pressure_hpa", "Pressure", 1.0, "hPa"),
+            ("rain_wetness_pct", "Rain wetness", 15.0, "%"),
+            ("wind_speed_mps", "Wind speed", 5.0, "m/s"),
+        ]
+
+        for metric, label, threshold, unit in sudden_checks:
+            current = getattr(measurement, metric, None)
+            old = getattr(previous, metric, None)
+            if current is None or old is None:
+                continue
+
+            change = round(current - old, 2)
+            if abs(change) < threshold:
+                continue
+
+            direction = "increased" if change > 0 else "decreased"
+            evidence = (
+                f"Sudden {label} change: {old:.2f} -> {current:.2f} {unit} "
+                f"(change {change:+.2f} {unit}, threshold ±{threshold:.2f} {unit})"
+            )
+
+            active = db.query(Incident).filter(
+                Incident.device_id == device.id,
+                Incident.event_type == "SUDDEN_CHANGE",
+                Incident.status.in_(["ACTIVE", "ACKNOWLEDGED"]),
+                Incident.evidence_summary.like(f"%{label}%")
+            ).first()
+            if active:
+                active.last_occurrence = measurement.timestamp
+                active.triggering_value = current
+                active.evidence_summary = evidence
+                incidents.append(active)
+                continue
+
+            incident = Incident(
+                station_id=measurement.station_id,
+                device_id=device.id,
+                event_type="SUDDEN_CHANGE",
+                severity="warning",
+                status="ACTIVE",
+                start_time=measurement.timestamp,
+                last_occurrence=measurement.timestamp,
+                triggering_value=current,
+                threshold_value=threshold,
+                evidence_summary=evidence,
+                is_simulated=False
+            )
+            db.add(incident)
+            db.flush()
+            db.add(IncidentEvidence(
+                incident_id=incident.id,
+                timestamp=measurement.timestamp,
+                metric_name=metric,
+                observed_value=current,
+                threshold_value=threshold,
+                note=f"{label} {direction} suddenly."
+            ))
+            incidents.append(incident)
+            notification_service.dispatch_incident_alerts(db, incident)
+
     def _check_recovery(self, operator: str, observed: float, recovery_threshold: float) -> bool:
         if operator in [">", ">="]:
             return observed < recovery_threshold
@@ -241,46 +319,6 @@ class EventDetectionEngine:
         return mapping.get(rule_code, "WEATHER_ANOMALY")
 
     def _check_sensor_health(self, db: Session, measurement: Measurement, device: Device, incidents: List[Incident]):
-        if not measurement.quality_flags:
-            return
-        try:
-            flags = json.loads(measurement.quality_flags)
-        except Exception:
-            return
-
-        for sensor, quality in flags.items():
-            if quality in ["INVALID", "MISSING"]:
-                active = db.query(Incident).filter(
-                    Incident.device_id == device.id,
-                    Incident.event_type == "SENSOR_MALFUNCTION",
-                    Incident.evidence_summary.like(f"%{sensor}%"),
-                    Incident.status.in_(["ACTIVE", "ACKNOWLEDGED"])
-                ).first()
-
-                if not active:
-                    inc = Incident(
-                        station_id=measurement.station_id,
-                        device_id=device.id,
-                        event_type="SENSOR_MALFUNCTION",
-                        severity="warning",
-                        status="ACTIVE",
-                        start_time=measurement.timestamp,
-                        last_occurrence=measurement.timestamp,
-                        evidence_summary=f"Sensor '{sensor}' health error: status {quality}",
-                        is_simulated=measurement.is_simulated
-                    )
-                    db.add(inc)
-                    db.flush()
-                    evidence = IncidentEvidence(
-                        incident_id=inc.id,
-                        timestamp=measurement.timestamp,
-                        metric_name=sensor,
-                        observed_value=None,
-                        threshold_value=None,
-                        note=f"Hardware read failure: quality flag set to {quality}"
-                    )
-                    db.add(evidence)
-                    incidents.append(inc)
-                    notification_service.dispatch_incident_alerts(db, inc)
+        return
 
 event_engine = EventDetectionEngine()

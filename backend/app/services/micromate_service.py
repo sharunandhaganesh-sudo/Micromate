@@ -91,7 +91,7 @@ class MicroMateService:
                 "id": station.id if station else None,
                 "name": station.name if station else "Unknown",
                 "code": station.code if station else "N/A",
-                "is_demo": station.is_demo if station else True,
+                "is_demo": station.is_demo if station else False,
             },
             "device": {
                 "identifier": device.device_identifier if device else None,

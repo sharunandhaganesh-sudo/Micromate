@@ -116,6 +116,7 @@ class IngestionService:
         rain_interval = raw_m.rainfall_interval_mm
         rain_total = raw_m.rainfall_total_mm
         rain_rate = raw_m.rain_rate_mmh
+        rain_wetness = raw_m.rain_wetness_pct
 
         # Apply calibration equations: val = val * factor + offset
         if temp_c is not None and "BME280_TEMP" in calibrations:
@@ -144,7 +145,14 @@ class IngestionService:
             dev_state["last_rainfall_total"] = rain_total
 
         # 8. Sensor Quality Assessment (Valid, Suspect, Invalid, Missing)
-        quality_flags = self._evaluate_quality_flags(dev_state, temp_c, hum_pct, press_hpa, wind_mps, rain_interval)
+        quality_flags = self._evaluate_quality_flags(
+            dev_state,
+            temp_c,
+            hum_pct,
+            press_hpa,
+            wind_mps,
+            rain_wetness if rain_wetness is not None else rain_interval
+        )
 
         # 9. Store Telemetry Message
         received_time = utc_now()
@@ -178,6 +186,7 @@ class IngestionService:
             rainfall_interval_mm=rain_interval,
             rainfall_total_mm=rain_total,
             rain_rate_mmh=rain_rate,
+            rain_wetness_pct=rain_wetness,
             quality_flags=json.dumps(quality_flags),
             is_simulated=is_simulated
         )

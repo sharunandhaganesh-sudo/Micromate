@@ -14,13 +14,13 @@ interface OnboardingModalProps {
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) => {
   const { refreshStations } = useSimulator();
   const [step, setStep] = useState<number>(1);
-  const [mode, setMode] = useState<'demo' | 'real'>('demo');
+  const [mode, setMode] = useState<'demo' | 'real'>('real');
 
   // Form states
-  const [stationName, setStationName] = useState('Ridgecrest Observatory');
-  const [stationCode, setStationCode] = useState('STATION-RC-01');
-  const [locationName, setLocationName] = useState('Ridgecrest Hill, Sector 4');
-  const [deviceId, setDeviceId] = useState('esp32-ridge-01');
+  const [stationName, setStationName] = useState('MICROMATE Weather Monitoring');
+  const [stationCode, setStationCode] = useState('STATION-MICROMATE-01');
+  const [locationName, setLocationName] = useState('ESP32 Field Station');
+  const [deviceId, setDeviceId] = useState('esp32-micromate-01');
   const [deviceName, setDeviceName] = useState('Field Node 01');
 
   const [createdStationId, setCreatedStationId] = useState<string | null>(null);

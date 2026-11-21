@@ -13,7 +13,6 @@ import { StationsDevicesPage } from './pages/StationsDevicesPage';
 import { EventsAlertsPage } from './pages/EventsAlertsPage';
 import { HistoricalDataPage } from './pages/HistoricalDataPage';
 import { ReportsPage } from './pages/ReportsPage';
-import { SettingsPage } from './pages/SettingsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,9 +35,8 @@ export const App: React.FC = () => {
                 <Route index element={<OverviewPage />} />
                 <Route path="live" element={<LiveMonitoringPage />} />
                 <Route path="events" element={<EventsAlertsPage />} />
-                <Route path="settings" element={<SettingsPage />} />
                 <Route path="analytics" element={<Navigate to="/live" replace />} />
-                <Route path="stations" element={<Navigate to="/settings" replace />} />
+                <Route path="stations" element={<Navigate to="/" replace />} />
                 <Route path="history" element={<Navigate to="/live" replace />} />
                 <Route path="reports" element={<Navigate to="/events" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

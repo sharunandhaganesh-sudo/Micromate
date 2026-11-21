@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM: Optional[str] = None
+    SMTP_USE_TLS: bool = True
+    SMTP_USE_SSL: bool = False
+    ALERT_EMAIL: Optional[str] = None
     TELEGRAM_BOT_TOKEN: Optional[str] = None
 
     # ThingSpeak Cloud Integration (Option A)

@@ -154,8 +154,8 @@ def get_dashboard_summary(
     w_val = latest_m.wind_speed_mps if latest_m else None
     w_prior = prior_m.wind_speed_mps if prior_m else None
 
-    r_val = latest_m.rainfall_total_mm if latest_m else None
-    r_prior = prior_m.rainfall_total_mm if prior_m else None
+    r_val = latest_m.rain_wetness_pct if latest_m and latest_m.rain_wetness_pct is not None else latest_m.rainfall_total_mm if latest_m else None
+    r_prior = prior_m.rain_wetness_pct if prior_m and prior_m.rain_wetness_pct is not None else prior_m.rainfall_total_mm if prior_m else None
 
     rr_val = latest_m.rain_rate_mmh if latest_m else None
     rr_prior = prior_m.rain_rate_mmh if prior_m else None
@@ -165,7 +165,7 @@ def get_dashboard_summary(
         "humidity": build_metric(h_val, h_prior, "%", "humidity_pct", "hum"),
         "pressure": build_metric(p_val, p_prior, "hPa", "pressure_hpa", "press"),
         "wind_speed": build_metric(w_val, w_prior, "m/s", "wind_speed_mps", "wind"),
-        "rainfall": build_metric(r_val, r_prior, "mm", "rainfall_total_mm", "rain"),
+        "rainfall": build_metric(r_val, r_prior, "%", "rain_wetness_pct", "rain"),
         "rain_rate": build_metric(rr_val, rr_prior, "mm/h", "rain_rate_mmh", "rain")
     }
 
@@ -180,7 +180,7 @@ def get_dashboard_summary(
         station_condition=station_condition,
         condition_details=condition_details,
         latest_freshness_seconds=freshness_s,
-        is_demo=selected_station.is_demo if selected_station else True,
+        is_demo=selected_station.is_demo if selected_station else False,
         metrics=metrics,
         selected_station=station_resp
     )

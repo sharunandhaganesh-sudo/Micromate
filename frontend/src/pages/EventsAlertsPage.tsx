@@ -76,7 +76,7 @@ export const EventsAlertsPage: React.FC = () => {
             Weather Alerts & Incidents
           </h1>
           <p className="text-xs text-navy-500 mt-1">
-            Extreme weather event detection, sensor evidence tracking, and alert lifecycle management for Ridgecrest Observatory.
+            Extreme weather event detection, sensor evidence tracking, and alert lifecycle management for the MICROMATE station.
           </p>
         </div>
       </div>
@@ -108,7 +108,6 @@ export const EventsAlertsPage: React.FC = () => {
         >
           <option value="all">All Sources</option>
           <option value="real">Real Hardware (ESP32 / ThingSpeak)</option>
-          <option value="simulated">Simulated Demo Only</option>
         </select>
 
         {/* Severity Filter */}

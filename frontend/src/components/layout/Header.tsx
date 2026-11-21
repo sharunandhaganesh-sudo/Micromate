@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   }, []);
 
   const selectedStation = stations.find((s) => s.id === selectedStationId);
-  const isDemo = selectedStation?.is_demo ?? true;
+  const isDemo = selectedStation?.is_demo ?? false;
 
   return (
     <header className="h-16 border-b border-surface-border bg-white px-3 sm:px-4 md:px-6 flex items-center justify-between sticky top-0 z-30 shadow-subtle">
@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             >
               {stations.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} {s.is_demo ? '(Demo)' : ''}
+                  {s.name}
                 </option>
               ))}
             </select>
@@ -69,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
           </div>
         </div>
 
-        {/* Live / Demo Status Pill */}
+        {/* Live Telemetry Status Pill */}
         <div className="hidden md:flex items-center shrink-0">
           {isDemo ? (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">

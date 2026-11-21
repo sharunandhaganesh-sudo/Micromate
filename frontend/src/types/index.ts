@@ -75,6 +75,7 @@ export interface Measurement {
   rainfall_interval_mm?: number | null;
   rainfall_total_mm?: number | null;
   rain_rate_mmh?: number | null;
+  rain_wetness_pct?: number | null;
   quality_flags?: string | null;
   is_simulated: boolean;
 }

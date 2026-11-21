@@ -13,9 +13,37 @@ def utc_now():
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+    with engine.begin() as connection:
+        measurement_columns = {
+            row[1] for row in connection.exec_driver_sql("PRAGMA table_info(measurements)").fetchall()
+        }
+        if "rain_wetness_pct" not in measurement_columns:
+            connection.exec_driver_sql(
+                "ALTER TABLE measurements ADD COLUMN rain_wetness_pct FLOAT"
+            )
     db = SessionLocal()
 
     try:
+        # Remove legacy demo data before any demo seed records are recreated.
+        db.query(DeviceCredential).filter(
+            (DeviceCredential.token == "dtoken_demo_esp32_secret_token_12345") |
+            (DeviceCredential.mqtt_username == "mqtt_esp32-demo-node")
+        ).delete(synchronize_session=False)
+        legacy_demo_stations = db.query(Station).filter(
+            (Station.is_demo == True) | (Station.name.ilike("%Ridgecrest Observatory%"))
+        ).all()
+        for legacy_station in legacy_demo_stations:
+            db.query(Incident).filter(Incident.station_id == legacy_station.id).delete(synchronize_session=False)
+            db.query(Measurement).filter(Measurement.station_id == legacy_station.id).delete(synchronize_session=False)
+            db.query(TelemetryMessage).filter(TelemetryMessage.station_id == legacy_station.id).delete(synchronize_session=False)
+            db.query(Device).filter(Device.station_id == legacy_station.id).delete(synchronize_session=False)
+            db.delete(legacy_station)
+        db.query(Measurement).filter(Measurement.is_simulated == True).delete(synchronize_session=False)
+        db.query(TelemetryMessage).filter(TelemetryMessage.is_simulated == True).delete(synchronize_session=False)
+        db.query(Incident).filter(Incident.is_simulated == True).delete(synchronize_session=False)
+        db.query(Incident).filter(Incident.event_type == "SENSOR_MALFUNCTION").delete(synchronize_session=False)
+        db.commit()
+
         # 1. Seed Users if not present
         if not db.query(User).filter(User.username == "admin").first():
             admin_user = User(
@@ -99,7 +127,7 @@ def init_db():
             db.flush()
 
         demo_device = db.query(Device).filter(Device.device_identifier == "esp32-demo-node").first()
-        if not demo_device:
+        if demo_station and not demo_device:
             demo_device = Device(
                 station_id=demo_station.id,
                 device_identifier="esp32-demo-node",
@@ -215,6 +243,32 @@ def init_db():
             db.add_all(messages)
             db.add_all(measurements)
             db.commit()
+
+        # Remove legacy demo and Ridgecrest Observatory data after seeding/checking.
+        demo_stations = db.query(Station).filter(
+            (Station.is_demo == True) | (Station.name.ilike("%Ridgecrest Observatory%"))
+        ).all()
+
+        db.query(DeviceCredential).filter(
+            (DeviceCredential.token == "dtoken_demo_esp32_secret_token_12345") |
+            (DeviceCredential.mqtt_username == "mqtt_esp32-demo-node")
+        ).delete(synchronize_session=False)
+        db.query(Measurement).filter(Measurement.is_simulated == True).delete(synchronize_session=False)
+        db.query(TelemetryMessage).filter(TelemetryMessage.is_simulated == True).delete(synchronize_session=False)
+        db.query(Incident).filter(Incident.is_simulated == True).delete(synchronize_session=False)
+
+        for station in demo_stations:
+            db.query(Incident).filter(Incident.station_id == station.id).delete(synchronize_session=False)
+            db.query(Measurement).filter(Measurement.station_id == station.id).delete(synchronize_session=False)
+            db.query(TelemetryMessage).filter(TelemetryMessage.station_id == station.id).delete(synchronize_session=False)
+            demo_devices = db.query(Device).filter(Device.station_id == station.id).all()
+            for demo_device in demo_devices:
+                db.query(DeviceCredential).filter(DeviceCredential.device_id == demo_device.id).delete(synchronize_session=False)
+                db.query(SensorConfiguration).filter(SensorConfiguration.device_id == demo_device.id).delete(synchronize_session=False)
+            db.query(Device).filter(Device.station_id == station.id).delete(synchronize_session=False)
+            db.delete(station)
+
+        db.commit()
 
         # 5. Initialize ThingSpeak Channel if not present
         if not db.query(ThingSpeakChannel).first():

@@ -40,6 +40,7 @@ class TelemetryMeasurements(BaseModel):
     rainfall_interval_mm: Optional[float] = Field(None, ge=0.0, le=500.0, description="Rainfall depth in mm during sampling interval")
     rainfall_total_mm: Optional[float] = Field(None, ge=0.0, description="Cumulative gauge total in mm since device boot/reset")
     rain_rate_mmh: Optional[float] = Field(None, ge=0.0, le=500.0, description="Calculated rainfall intensity rate in mm/hour")
+    rain_wetness_pct: Optional[float] = Field(None, ge=0.0, le=100.0, description="Rain sensor wetness percentage")
 
 class TelemetryHealth(BaseModel):
     battery_voltage_v: Optional[float] = Field(None, ge=0.0, le=15.0)
@@ -193,6 +194,7 @@ class MeasurementResponse(BaseModel):
     rainfall_interval_mm: Optional[float]
     rainfall_total_mm: Optional[float]
     rain_rate_mmh: Optional[float]
+    rain_wetness_pct: Optional[float]
     quality_flags: Optional[str]
     is_simulated: bool
 

@@ -17,11 +17,9 @@ DEFAULT_FIELD_MAPPING = {
     "field1": "temperature_c",
     "field2": "humidity_pct",
     "field3": "pressure_hpa",
-    "field4": "wind_speed_mps",
-    "field5": "rainfall_total_mm",
-    "field6": "battery_voltage_v",
-    "field7": "wifi_rssi_dbm",
-    "field8": "rain_rate_mmh"
+    "field4": "rain_wetness_pct",
+    "field5": "wind_speed_mps",
+    "field8": "wifi_rssi_dbm"
 }
 
 def utc_now() -> datetime:
@@ -79,7 +77,7 @@ class ThingSpeakService:
             ch_id = settings.THINGSPEAK_CHANNEL_ID or "UNCONFIGURED"
             ch = ThingSpeakChannel(
                 channel_id=ch_id,
-                channel_name="Primary Weather Station Channel",
+                channel_name="MICROMATE - Weather Monitoring" if ch_id == "3590932" else "Primary Weather Station Channel",
                 read_api_key=settings.THINGSPEAK_READ_API_KEY,
                 write_api_key=settings.THINGSPEAK_WRITE_API_KEY,
                 is_enabled=bool(settings.THINGSPEAK_CHANNEL_ID and settings.THINGSPEAK_CHANNEL_ID != "UNCONFIGURED"),
@@ -88,6 +86,19 @@ class ThingSpeakService:
                 status="ACTIVE" if settings.THINGSPEAK_CHANNEL_ID else "UNCONFIGURED"
             )
             db.add(ch)
+            db.commit()
+            db.refresh(ch)
+        elif settings.THINGSPEAK_CHANNEL_ID:
+            # Environment configuration is authoritative for local deployment.
+            ch.channel_id = settings.THINGSPEAK_CHANNEL_ID
+            ch.channel_name = "MICROMATE - Weather Monitoring"
+            ch.is_enabled = True
+            ch.sync_interval_seconds = settings.THINGSPEAK_SYNC_INTERVAL_SECONDS
+            ch.field_mapping = json.dumps(DEFAULT_FIELD_MAPPING)
+            if settings.THINGSPEAK_READ_API_KEY:
+                ch.read_api_key = settings.THINGSPEAK_READ_API_KEY
+            else:
+                ch.read_api_key = None
             db.commit()
             db.refresh(ch)
         return ch
@@ -128,6 +139,7 @@ class ThingSpeakService:
                     "channel_id": channel_id,
                     "channel_name": ch_info.get("name", "Unknown Channel"),
                     "description": ch_info.get("description", ""),
+                    "last_entry_id": ch_info.get("last_entry_id"),
                     "field_names": {
                         f"field{i}": ch_info.get(f"field{i}")
                         for i in range(1, 9)
@@ -219,12 +231,13 @@ class ThingSpeakService:
             if channel.station_id:
                 station = db.query(Station).filter(Station.id == channel.station_id).first()
             if not station:
-                station = db.query(Station).filter(Station.is_demo == False).first()
+                station = db.query(Station).filter(
+                    Station.code == f"STATION-TS-{channel.channel_id}"
+                ).first()
             if not station:
-                # Create dedicated real ThingSpeak station
                 station = Station(
                     code=f"STATION-TS-{channel.channel_id}",
-                    name=ch_info.get("name") or f"ThingSpeak Station ({channel.channel_id})",
+                    name="MICROMATE - Weather Monitoring",
                     description=ch_info.get("description") or "Live microclimate station streaming via ThingSpeak Cloud IoT",
                     location_name="Field Telemetry Site",
                     is_demo=False,
@@ -248,6 +261,9 @@ class ThingSpeakService:
                 )
                 db.add(device)
                 db.flush()
+            else:
+                device.station_id = station.id
+                device.status = "ONLINE"
 
             ingested_count = 0
 
@@ -296,7 +312,7 @@ class ThingSpeakService:
                     if metric_target in [
                         "temperature_c", "humidity_pct", "pressure_hpa",
                         "wind_speed_mps", "wind_gust_mps", "rainfall_interval_mm",
-                        "rainfall_total_mm", "rain_rate_mmh"
+                        "rainfall_total_mm", "rain_rate_mmh", "rain_wetness_pct"
                     ]:
                         measurements_dict[metric_target] = safe_float(raw_val)
                     elif metric_target == "battery_voltage_v":
@@ -309,7 +325,7 @@ class ThingSpeakService:
                 # Construct standardized payload
                 payload = {
                     "schema_version": 1,
-                    "message_id": f"ts-{channel.channel_id}-{entry_id}",
+                    "message_id": f"ts-{channel.channel_id}-{device.id}-{entry_id}",
                     "device_id": device.device_identifier,
                     "sequence": entry_id,
                     "timestamp": timestamp.isoformat(),
@@ -355,6 +371,11 @@ class ThingSpeakService:
                 ).all()
 
                 for ch in channels:
+                    if settings.THINGSPEAK_CHANNEL_ID:
+                        ch.channel_id = settings.THINGSPEAK_CHANNEL_ID
+                    if settings.THINGSPEAK_READ_API_KEY:
+                        ch.read_api_key = settings.THINGSPEAK_READ_API_KEY
+                    ch.field_mapping = json.dumps(DEFAULT_FIELD_MAPPING)
                     await self.sync_channel(db, ch)
             finally:
                 db.close()

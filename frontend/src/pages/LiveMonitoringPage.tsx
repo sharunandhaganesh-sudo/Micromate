@@ -63,7 +63,7 @@ export const LiveMonitoringPage: React.FC = () => {
   const currentHum = latestEvent?.measurements?.humidity_pct ?? latestSnapshot?.humidity_pct;
   const currentPress = latestEvent?.measurements?.pressure_hpa ?? latestSnapshot?.pressure_hpa;
   const currentWind = latestEvent?.measurements?.wind_speed_mps ?? latestSnapshot?.wind_speed_mps;
-  const currentRain = latestEvent?.measurements?.rainfall_total_mm ?? latestSnapshot?.rainfall_total_mm;
+  const currentRain = latestEvent?.measurements?.rain_wetness_pct ?? latestSnapshot?.rain_wetness_pct;
   const currentRainRate = latestEvent?.measurements?.rain_rate_mmh ?? latestSnapshot?.rain_rate_mmh;
 
   const qualityFlags = latestEvent?.quality_flags || (latestSnapshot?.quality_flags ? JSON.parse(latestSnapshot.quality_flags) : {});
@@ -129,7 +129,7 @@ export const LiveMonitoringPage: React.FC = () => {
             )}
           </div>
           <p className="text-xs text-navy-500 mt-1">
-            Real-time telemetry streaming from Ridgecrest Observatory hardware node with historical archives.
+            Real-time telemetry streaming from the MICROMATE ESP32 hardware node with historical archives.
           </p>
         </div>
 
@@ -268,16 +268,16 @@ export const LiveMonitoringPage: React.FC = () => {
         {/* Rainfall Total */}
         <div className="bg-white rounded-2xl border border-surface-border p-4 text-center flex flex-col justify-between shadow-card">
           <div className="flex items-center justify-between text-xs text-navy-500 mb-2 font-medium">
-            <span className="flex items-center gap-1"><CloudRain className="w-3.5 h-3.5 text-blue-500" /> Rain Total</span>
+            <span className="flex items-center gap-1"><CloudRain className="w-3.5 h-3.5 text-blue-500" /> Rain Wetness</span>
             <QualityPill quality={qualityFlags.rain || 'VALID'} />
           </div>
           <div className="py-2">
             <span className="text-3xl font-extrabold font-mono text-navy-900 tracking-tight">
               {currentRain !== undefined && currentRain !== null ? currentRain.toFixed(1) : '--'}
             </span>
-            <span className="text-xs text-navy-500 ml-1 font-bold">mm</span>
+            <span className="text-xs text-navy-500 ml-1 font-bold">%</span>
           </div>
-          <div className="text-[10px] text-navy-400 font-mono">Cumulative Gauge</div>
+          <div className="text-[10px] text-navy-400 font-mono">Rain Sensor Level</div>
         </div>
 
         {/* Rain Rate */}
@@ -448,7 +448,7 @@ export const LiveMonitoringPage: React.FC = () => {
               ) : (
                 <tr>
                   <td colSpan={9} className="py-10 text-center text-navy-400 font-sans">
-                    Awaiting live incoming telemetry stream... Connect ESP32 or trigger Inject Event.
+                    Awaiting live incoming telemetry stream... Verify the ESP32 ThingSpeak upload.
                   </td>
                 </tr>
               )}

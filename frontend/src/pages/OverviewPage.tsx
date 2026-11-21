@@ -72,7 +72,7 @@ export const OverviewPage: React.FC = () => {
   });
 
   const m = summary?.metrics;
-  const isDemo = summary?.is_demo ?? true;
+  const isDemo = summary?.is_demo ?? false;
   const activeIncidents = recentIncidents?.filter((i) => i.status === 'ACTIVE' || i.status === 'ACKNOWLEDGED') || [];
   const hasActiveWarning = activeIncidents.length > 0;
   const topIncident = activeIncidents[0];
@@ -159,18 +159,18 @@ export const OverviewPage: React.FC = () => {
   const windStatus =
     windVal === undefined || windVal === null
       ? 'unknown'
-      : windVal > 45
+      : windVal > 18
       ? 'critical'
-      : windVal > 25
+      : windVal > 10
       ? 'warning'
       : 'normal';
 
   const rainStatus =
     rainVal === undefined || rainVal === null
       ? 'unknown'
-      : rainVal > 25
+      : rainVal > 70
       ? 'critical'
-      : rainVal > 5
+      : rainVal > 30
       ? 'warning'
       : 'normal';
 
@@ -249,16 +249,10 @@ export const OverviewPage: React.FC = () => {
             <h1 className="text-xl md:text-2xl font-bold tracking-tight text-navy-900">
               Microclimate Monitoring
             </h1>
-            {isDemo ? (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold tracking-wide whitespace-nowrap">
-                SIMULATED DEMO
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold tracking-wide whitespace-nowrap">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                REAL HARDWARE (THINGSPEAK)
-              </span>
-            )}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold tracking-wide whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              REAL HARDWARE (THINGSPEAK)
+            </span>
           </div>
           <p className="text-xs text-navy-500 mt-1">
             Real-time environmental observations, realistic 3D telemetry sensors, and verified weather status.
@@ -320,7 +314,7 @@ export const OverviewPage: React.FC = () => {
           <div className="sm:text-right shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
             <span className="text-[11px] font-medium text-navy-500 block">Station Location</span>
             <span className="text-sm font-bold text-navy-900 block truncate max-w-[200px]">
-              {summary?.selected_station?.name || 'Ridgecrest Observatory'}
+              {summary?.selected_station?.name || 'MICROMATE Weather Monitoring'}
             </span>
             <span className="text-[11px] font-mono text-primary-600 font-semibold block mt-0.5">
               ESP32 Station • Online
@@ -559,12 +553,12 @@ export const OverviewPage: React.FC = () => {
             type="wind"
             title="Wind Speed"
             value={windVal}
-            unit="km/h"
+            unit="m/s"
             statusText={windStatus === 'critical' ? 'Gale Force' : windStatus === 'warning' ? 'Breezy' : 'Normal'}
             statusLevel={windStatus}
             lastUpdated={m?.wind_speed?.last_updated ? new Date(m.wind_speed.last_updated).toLocaleTimeString() : undefined}
             secondaryLabel="Anemometer"
-            secondaryValue={windVal && windVal > 20 ? 'Moderate Breeze' : 'Calm / Gentle'}
+            secondaryValue={windVal && windVal > 10 ? 'Breezy' : 'Calm / Gentle'}
           />
 
           {/* E. Rainfall */}
@@ -572,7 +566,7 @@ export const OverviewPage: React.FC = () => {
             type="rain"
             title="Precipitation"
             value={rainVal}
-            unit="mm"
+            unit="%"
             statusText={rainStatus === 'critical' ? 'Heavy Downpour' : rainStatus === 'warning' ? 'Rain Shower' : 'No Rain'}
             statusLevel={rainStatus}
             lastUpdated={m?.rainfall?.last_updated ? new Date(m.rainfall.last_updated).toLocaleTimeString() : undefined}

@@ -88,7 +88,7 @@ export const ReportsPage: React.FC = () => {
           <div>
             <label className="block font-medium text-slate-300 mb-1">Station</label>
             <div className="bg-surface-elevated border border-surface-border rounded-lg px-3 py-2 text-slate-200 font-medium truncate">
-              {selectedStation?.name || 'Ridgecrest Observatory'}
+              {selectedStation?.name || 'MICROMATE Weather Monitoring'}
             </div>
           </div>
 
@@ -230,7 +230,7 @@ export const ReportsPage: React.FC = () => {
                 reportJobs.map((j) => (
                   <tr key={j.id} className="hover:bg-surface-elevated/40 transition">
                     <td className="py-2.5 px-3 text-primary-400">{j.id.slice(0, 8)}...</td>
-                    <td className="py-2.5 px-3 text-slate-200 font-sans">{j.station_name || 'Ridgecrest Observatory'}</td>
+                    <td className="py-2.5 px-3 text-slate-200 font-sans">{j.station_name || 'MICROMATE Weather Monitoring'}</td>
                     <td className="py-2.5 px-3 uppercase text-slate-300">{j.report_type.replace(/_/g, ' ')}</td>
                     <td className="py-2.5 px-3 text-slate-400">
                       {new Date(j.date_from).toLocaleDateString()} — {new Date(j.date_to).toLocaleDateString()}

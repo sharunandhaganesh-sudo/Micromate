@@ -3,9 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Activity,
-  History,
   AlertTriangle,
-  Settings,
   X,
   Radio,
 } from 'lucide-react';
@@ -22,7 +20,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: 'Overview', to: '/', icon: LayoutDashboard },
     { name: 'Live Monitoring', to: '/live', icon: Activity },
     { name: 'Alerts', to: '/events', icon: AlertTriangle },
-    { name: 'Settings', to: '/settings', icon: Settings },
   ];
 
   return (

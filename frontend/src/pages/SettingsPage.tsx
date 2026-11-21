@@ -377,8 +377,8 @@ export const SettingsPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    value={tsForm.name || ''}
-                    onChange={(e) => setTsForm({ ...tsForm, name: e.target.value })}
+                    value={tsForm.channel_name || ''}
+                    onChange={(e) => setTsForm({ ...tsForm, channel_name: e.target.value })}
                     placeholder="e.g. Primary Weather Station"
                     className="w-full bg-surface-elevated border border-surface-border rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none"
                   />
@@ -436,8 +436,8 @@ export const SettingsPage: React.FC = () => {
                   <input
                     type="checkbox"
                     id="tsEnabled"
-                    checked={tsForm.is_active ?? true}
-                    onChange={(e) => setTsForm({ ...tsForm, is_active: e.target.checked })}
+                    checked={tsForm.is_enabled ?? true}
+                    onChange={(e) => setTsForm({ ...tsForm, is_enabled: e.target.checked })}
                     className="w-4 h-4 rounded border-slate-700 bg-surface-elevated text-cyan-600 focus:ring-0"
                   />
                   <label htmlFor="tsEnabled" className="text-xs text-slate-200 cursor-pointer">

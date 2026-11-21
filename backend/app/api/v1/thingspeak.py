@@ -115,7 +115,7 @@ async def trigger_thingspeak_sync(db: Session = Depends(get_db), current_user: U
     Triggers an immediate on-demand synchronization from ThingSpeak Cloud.
     """
     ch = thingspeak_service.get_or_create_primary_channel(db)
-    count, err = await thingspeak_service.sync_channel(db, ch, results_count=20)
+    count, err = await thingspeak_service.sync_channel(db, ch, results_count=100)
     if err:
         return {"status": "error", "message": err, "ingested_count": 0}
     return {"status": "ok", "message": f"Successfully synced {count} entries from ThingSpeak.", "ingested_count": count}

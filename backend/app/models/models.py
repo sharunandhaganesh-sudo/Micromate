@@ -159,6 +159,7 @@ class Measurement(Base):
     rainfall_interval_mm = Column(Float, nullable=True)
     rainfall_total_mm = Column(Float, nullable=True)
     rain_rate_mmh = Column(Float, nullable=True)
+    rain_wetness_pct = Column(Float, nullable=True)
     
     # Sensor quality status JSON
     # e.g., '{"temp": "VALID", "hum": "VALID", "press": "VALID", "wind": "VALID", "rain": "VALID"}'
